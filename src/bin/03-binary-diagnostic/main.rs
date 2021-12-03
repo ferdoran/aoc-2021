@@ -44,8 +44,6 @@ fn main() {
     println!("Submarine consumes {} power. Gamma rate is {}. Epsilon rate is {}", gamma * epsilon, gamma, epsilon);
     let (oxygen, co2) = calc_oxygen_and_co2(input_string.clone());
 
-    // initially 1097333, 3797, 289
-    // later 5815160, 2743, 2120
     println!("Submarine's life support rate is {}. Oxygen generator rating is {}. CO2 scrubber rating is {}", oxygen*co2, oxygen, co2);
 }
 
