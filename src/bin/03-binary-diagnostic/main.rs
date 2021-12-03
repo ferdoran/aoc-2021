@@ -42,14 +42,14 @@ fn main() {
         println!("Column {}s\tprimary value is {}\t secondary value is {}", i, primary_char, secondary_char);
     }
     println!("Submarine consumes {} power. Gamma rate is {}. Epsilon rate is {}", gamma * epsilon, gamma, epsilon);
-    let (oxygen, co2) = calc_oxygen_and_co2(input_string.clone(), columns);
+    let (oxygen, co2) = calc_oxygen_and_co2(input_string.clone());
 
     // initially 1097333, 3797, 289
     // later 5815160, 2743, 2120
     println!("Submarine's life support rate is {}. Oxygen generator rating is {}. CO2 scrubber rating is {}", oxygen*co2, oxygen, co2);
 }
 
-fn calc_oxygen_and_co2(input: String, columns: [Column; COLUMNS]) -> (u32, u32) {
+fn calc_oxygen_and_co2(input: String) -> (u32, u32) {
     // The calculation is still incorrect...
     let mut lines_oxygen: Vec<&str> = input.lines().collect();
     let mut lines_co2: Vec<&str> = lines_oxygen.clone();
@@ -59,12 +59,13 @@ fn calc_oxygen_and_co2(input: String, columns: [Column; COLUMNS]) -> (u32, u32) 
             println!("aborting oxygen filtering after {}", i);
             break;
         }
-        let col = columns[i];
-        let primary_char = if col.ones >= col.zeros { '1' } else { '0' };
+        // don't forget to recalculate the occurrences of 0s and 1s based on the filtered list!
+        let col = init_columns_from_given_lines(lines_oxygen.clone())[i];
+        let most_common_char = if col.ones >= col.zeros { '1' } else { '0' };
 
         lines_oxygen = lines_oxygen.iter().filter(|line| {
             match line.chars().nth(i) {
-                Some(ch) => ch == primary_char,
+                Some(ch) => ch == most_common_char,
                 None => false
             }
         })
@@ -77,12 +78,13 @@ fn calc_oxygen_and_co2(input: String, columns: [Column; COLUMNS]) -> (u32, u32) 
             println!("aborting co2 filtering after {}", i);
             break;
         }
-        let col = columns[i];
-        let secondary_char = if col.zeros <= col.ones { '0' } else { '1' };
+        // don't forget to recalculate the occurrences of 0s and 1s based on the filtered list!
+        let col = init_columns_from_given_lines(lines_co2.clone())[i];
+        let least_common_char = if col.zeros <= col.ones { '0' } else { '1' };
 
         lines_co2 = lines_co2.iter().filter(|line| {
             match line.chars().nth(i) {
-                Some(ch) => ch == secondary_char,
+                Some(ch) => ch == least_common_char,
                 None => false
             }
         })
@@ -94,8 +96,8 @@ fn calc_oxygen_and_co2(input: String, columns: [Column; COLUMNS]) -> (u32, u32) 
 
     let mut oxygen_bits: BitVec<Msb0> = BitVec::new();
     let mut co2_bits: BitVec<Msb0> = BitVec::new();
-    lines_oxygen.first().unwrap().chars().map(|ch| ch == '1').for_each(|b| oxygen_bits.push(b));
-    lines_co2.first().unwrap().chars().map(|ch| ch == '1').for_each(|b| co2_bits.push(b));
+    lines_oxygen.first().unwrap().chars().map(|ch| ch.to_digit(2).unwrap() == 1).for_each(|b| oxygen_bits.push(b));
+    lines_co2.first().unwrap().chars().map(|ch| ch.to_digit(2).unwrap() == 1).for_each(|b| co2_bits.push(b));
     let oxygen = oxygen_bits.load::<u32>();
     let co2 = co2_bits.load::<u32>();
 
@@ -124,6 +126,25 @@ fn calc_gamma_and_epsilon(columns: [Column; COLUMNS]) -> (u32, u32) {
     let epsilon: u32 = epsilon_bits.load::<u32>();
 
     return (gamma, epsilon);
+}
+
+fn init_columns_from_given_lines(input_lines: Vec<&str>) -> [Column; COLUMNS] {
+    let mut columns: [Column; COLUMNS] = [Column{zeros: 0, ones: 0}; COLUMNS];
+
+    for line in input_lines {
+        for (col, char) in line.char_indices() {
+            char.to_digit(2)
+                .map(|bit| {
+                    match bit {
+                        0 => columns[col].zeros += 1,
+                        1 => columns[col].ones += 1,
+                        _ => {}
+                    }
+                });
+        }
+    }
+
+    return columns;
 }
 
 fn init_columns(input_string: String) -> [Column; COLUMNS] {
