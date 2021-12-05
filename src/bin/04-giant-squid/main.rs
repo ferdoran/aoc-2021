@@ -7,6 +7,8 @@ const BOARD_SIZE: usize = 25;
 
 struct Board {
     numbers: [BoardNumber; BOARD_SIZE],
+    is_complete: bool,
+    id: usize,
 }
 
 impl Board {
@@ -17,7 +19,7 @@ impl Board {
     }
 
     fn has_complete_row(&self) -> bool {
-        for i in 0..4 {
+        for i in 0..5 {
             let m1 = self.numbers[i*5].marked;
             let m2 = self.numbers[i*5 + 1].marked;
             let m3 = self.numbers[i*5 + 2].marked;
@@ -64,7 +66,9 @@ impl Board {
 impl Clone for Board {
     fn clone(&self) -> Self {
         return Board {
-            numbers: self.numbers
+            numbers: self.numbers,
+            is_complete: false,
+            id: self.id
         };
     }
 }
@@ -118,7 +122,7 @@ fn main() {
         }
 
         if count == BOARD_SIZE {
-            boards.push(Board { numbers: tmp_numbers });
+            boards.push(Board { numbers: tmp_numbers, is_complete: false, id: boards.len()+1});
             tmp_numbers = [BoardNumber { number: 0, marked: false }; BOARD_SIZE];
             count = 0;
         }
@@ -126,14 +130,37 @@ fn main() {
 
     println!("got {} boards", boards.len());
 
+    find_first_winning_board(&mut bingo_inputs, &mut boards);
+    find_last_winning_board(&mut bingo_inputs, &mut boards);
+}
+
+fn find_first_winning_board(bingo_inputs: &Vec<u32>, boards: &mut Vec<Board>) {
     for number in bingo_inputs {
         for (index, board) in boards.iter_mut().enumerate() {
-            board.mark_number(number);
+            board.mark_number(*number);
             if board.has_complete_row() || board.has_complete_column() {
                 let result = board.sum_unmarked() * number;
-                println!("Board {} has won! Result is: {} and winning number is {}", index+1, result, number);
+                println!("Board {} has won first! Result is: {} and winning number is {}", index + 1, result, number);
                 return;
             }
         }
     }
+}
+fn find_last_winning_board(bingo_inputs: &Vec<u32>, boards: &mut Vec<Board>) {
+    let mut last_result = 0;
+    // let mut unfinished_boards = Vec::new();
+    let mut completed_boards: Vec<usize> = Vec::new();
+    for number in bingo_inputs {
+        for board in boards.iter_mut().filter(|b| !b.is_complete) {
+            board.mark_number(*number);
+            if board.has_complete_row() || board.has_complete_column() {
+                // println!("number {} completed board: {} with result: {}", number, board.id, number * board.sum_unmarked());
+                board.is_complete = true;
+                last_result = number * board.sum_unmarked();
+                completed_boards.push(board.id);
+            }
+        }
+    }
+
+    println!("The last winning board has result {}", last_result)
 }
