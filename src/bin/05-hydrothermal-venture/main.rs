@@ -100,7 +100,7 @@ fn main() {
     for x in 0..GRID_SIZE {
         for y in 0..GRID_SIZE {
             let point = Point {x, y};
-            let num_overlapping_line_segments = line_segments.iter()
+            let num_overlapping_line_segments = line_segments.iter()// for part 1 an additional filter on only horizontal and vertical lines is required
                 .filter(|ls| ls.contains(point))
                 .count();
             if num_overlapping_line_segments > 1 {
