@@ -1,15 +1,3 @@
-use std::collections::HashMap;
-
-enum Segment {
-    Top,
-    Middle,
-    Bottom,
-    TopLeft,
-    TopRight,
-    BottomLeft,
-    BottomRight,
-}
-
 struct SignalPattern {
     patterns: Vec<String>,
     digits: Vec<String>
