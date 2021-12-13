@@ -1,9 +1,3 @@
-use std::collections::HashMap;
-use regex::Regex;
-
-const VALID_SYNTAX_PATTERN: &str = r"^((\().*(\))|(\[).*(\])|(\{).*(\})|(<).*(>))$";
-const LINE_WITH_INVALID_CLOSING_PATTERN: &str = r"^((\().*(\))|(\[).*(\])|(\{).*(\})|(<).*(>))(?P<fc>[>\}\]\)])+.*$";
-
 fn main() {
     let input_string = include_str!("input.txt");
     let mut invalids: Vec<&str> = Vec::new();
@@ -36,7 +30,6 @@ fn main() {
                     _ => {}
                 };
             }
-            println!("After line {} there are {} invalids", li, invalids.len());
             if opens.len() != 0 {
                 Some(opens)
             } else {
@@ -44,19 +37,16 @@ fn main() {
             }
         })
         .map(|opens| {
-            let mut score = 0;
             opens.iter().rev()
-                .for_each(|c| {
-                    score *= 5;
-                    score += match *c {
+                .fold(0, |acc, c| {
+                    acc * 5 + match *c {
                         "(" => 1,
                         "[" => 2,
                         "{" => 3,
                         "<" => 4,
                         _ => 0,
                     }
-                });
-            score
+                })
         })
         .collect();
     auto_completion_scores.sort();
