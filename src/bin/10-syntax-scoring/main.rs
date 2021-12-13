@@ -38,8 +38,8 @@ fn main() {
         })
         .map(|opens| {
             opens.iter().rev()
-                .fold(0, |acc, c| {
-                    acc * 5 + match *c {
+                .fold(0, |score, c| {
+                    score * 5 + match *c {
                         "(" => 1,
                         "[" => 2,
                         "{" => 3,
